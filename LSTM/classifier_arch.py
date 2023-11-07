@@ -38,8 +38,13 @@ input_shape = (genre_features.train_X.shape[1], genre_features.train_X.shape[2])
 print("Build LSTM RNN model ...")
 model = Sequential()
 
-model.add(LSTM(units=128, dropout=0.05, recurrent_dropout=0.35, return_sequences=True, input_shape=input_shape))
-model.add(LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=False))
+# added another 64-unit lstm module and increased dropout on first module @ethanB
+lstm0 = LSTM(units=128, dropout=0.1, recurrent_dropout=0.40, return_sequences=True, input_shape=input_shape)
+model.add(lstm0)
+lstm1 = LSTM(units=64,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True)
+model.add(lstm1)
+lstm2 = LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=False)
+model.add(lstm2)
 model.add(Dense(units=genre_features.train_Y.shape[1], activation="softmax"))
 
 print("Compiling ...")
@@ -53,7 +58,7 @@ model.summary()
 
 print("Training ...")
 batch_size = 35  # num of training examples per minibatch
-num_epochs = 1
+num_epochs = 3
 model.fit(
     genre_features.train_X,
     genre_features.train_Y,

@@ -55,7 +55,17 @@ def get_genre(model, music_path):
 
 
 if __name__ == "__main__":
-    PATH = sys.argv[1] if len(sys.argv) == 2 else "LSTM\Test_Samples\Khemmis-Hunted-04BeyondTheDoor.mp3" # Actual song i downloaded to test lol  @ethanB
+    print("loading model...\n")
     MODEL = load_model("model\lstm_genre_classifier_model.json", "model\lstm_genre_classifier_model.h5")
-    GENRE = get_genre(MODEL, PATH)
-    print("Model predict: {}".format(GENRE))
+    print("\nmodel loaded")
+    while(1):
+        print("Enter path (or 'exit' to stop):\n>", end="")
+        # PATH = sys.argv[1] if len(sys.argv) == 2 else "LSTM\Test_Samples\Khemmis-Hunted-04BeyondTheDoor.mp3" # Actual song i downloaded to test lol  @ethanB
+        PATH = input()
+        if PATH.lower() == "exit": break
+        try:
+            GENRE = get_genre(MODEL, PATH)
+        except:
+            print("could not generate prediction. check fp")
+            continue
+        print("Model predict: {}".format(GENRE))

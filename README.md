@@ -12,7 +12,7 @@ LSTM code deps:
 -torchvision
 
 to test LSTM, use:
-`python3 predict_example.py path/to/custom/file.mp3`
+`python3 classifier_predict.py path/to/custom/file.mp3`
 
 LSTM code is modified version of https://github.com/ruohoruotsi/LSTM-Music-Genre-Classification/tree/master
 Huge credit to https://github.com/ruohoruotsi . The code was modified to include more classifications and obviously we are doing the classification with a live recording, and the 
