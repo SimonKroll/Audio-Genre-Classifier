@@ -8,14 +8,47 @@ import librosa
 import logging
 import sys
 import numpy as np
-
 from keras.models import model_from_json
+from keras import backend as K
+
 from GenreFeatureData import (
     GenreFeatureData,
 )  # local python class with Audio feature extraction and genre list
 
 # set logging level
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
+
+# from https://stackoverflow.com/questions/43137288/how-to-determine-needed-memory-of-keras-model
+def get_model_memory_usage(batch_size, model):
+    shapes_mem_count = 0
+    internal_model_mem_count = 0
+    for l in model.layers:
+        layer_type = l.__class__.__name__
+        if layer_type == 'Model':
+            internal_model_mem_count += get_model_memory_usage(batch_size, l)
+        single_layer_mem = 1
+        out_shape = l.output_shape
+        if type(out_shape) is list:
+            out_shape = out_shape[0]
+        for s in out_shape:
+            if s is None:
+                continue
+            single_layer_mem *= s
+        shapes_mem_count += single_layer_mem
+
+    trainable_count = np.sum([K.count_params(p) for p in model.trainable_weights])
+    non_trainable_count = np.sum([K.count_params(p) for p in model.non_trainable_weights])
+
+    number_size = 4.0
+    if K.floatx() == 'float16':
+        number_size = 2.0
+    if K.floatx() == 'float64':
+        number_size = 8.0
+
+    total_memory = number_size * (batch_size * shapes_mem_count + trainable_count + non_trainable_count)
+    gbytes = np.round(total_memory / (1024.0 ** 3), 3) + internal_model_mem_count
+    return gbytes
+
 
 
 def load_model(model_path, weights_path):
@@ -57,7 +90,12 @@ def get_genre(model, music_path):
 if __name__ == "__main__":
     print("loading model...\n")
     MODEL = load_model("model\lstm_genre_classifier_model.json", "model\lstm_genre_classifier_model.h5")
+    # size = get_model_memory_usage(30, MODEL)
+    # size = size * 1000000
     print("\nmodel loaded")
+    # print('trained model size: ' + str(size) + "bytes")
+
+    
     while(1):
         print("Enter path (or 'exit' to stop):\n>", end="")
         # PATH = sys.argv[1] if len(sys.argv) == 2 else "LSTM\Test_Samples\Khemmis-Hunted-04BeyondTheDoor.mp3" # Actual song i downloaded to test lol  @ethanB
