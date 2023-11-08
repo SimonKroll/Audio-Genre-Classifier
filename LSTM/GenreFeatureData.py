@@ -15,23 +15,20 @@ import numpy as np
 class GenreFeatureData:
 
     "Music audio features for genre classification"
-    # Added in rock and blues genres for full dataset training @ethanB
     hop_length = None
     genre_list = [
         "classical",
         "country",
-        "disco",
         "hiphop",
         "jazz",
         "metal",
         "pop",
-        "reggae",
-        "blues",
         "rock"
     ]
 
     dir_trainfolder = "LSTM/Data/TRAIN"
     dir_testfolder = "LSTM/Data/TEST"
+    dir_valfolder = "LSTM/Data/VAL"
     dir_all_files = "LSTM/Data"
 
     train_X_preprocessed_data = "LSTM/processed/data_train_input.npy"
@@ -39,9 +36,12 @@ class GenreFeatureData:
 
     test_X_preprocessed_data = "LSTM/processed/data_test_input.npy"
     test_Y_preprocessed_data = "LSTM/processed/data_test_target.npy"
+    
+    val_X_preprocessed_data = "LSTM/processed/data_val_input.npy"
+    val_Y_preprocessed_data = "LSTM/processed/data_val_target.npy"
 
     train_X = train_Y = None
-    dev_X = dev_Y = None
+    val_X = val_Y = None
     test_X = test_Y = None
 
     def __init__(self):
@@ -50,10 +50,12 @@ class GenreFeatureData:
         self.timeseries_length_list = []
         self.trainfiles_list = self.path_to_audiofiles(self.dir_trainfolder)
         self.testfiles_list = self.path_to_audiofiles(self.dir_testfolder)
+        self.valfiles_list = self.path_to_audiofiles(self.dir_valfolder)
 
         self.all_files_list = []
         self.all_files_list.extend(self.trainfiles_list)
         self.all_files_list.extend(self.testfiles_list)
+        self.all_files_list.extend(self.valfiles_list)
 
         # compute minimum timeseries length, slow to compute, caching pre-computed value of 1290
         # self.precompute_min_timeseries_len()
@@ -82,12 +84,21 @@ class GenreFeatureData:
         with open(self.test_Y_preprocessed_data, "wb") as f:
             self.test_Y = self.one_hot(self.test_Y)
             np.save(f, self.test_Y)
+        # Validation set
+        self.val_X, self.val_Y = self.extract_audio_features(self.valfiles_list)
+        with open(self.val_X_preprocessed_data, "wb") as f:
+            np.save(f, self.val_X)
+        with open(self.val_Y_preprocessed_data, "wb") as f:
+            self.val_Y = self.one_hot(self.val_Y)
+            np.save(f, self.val_Y)
 
 
     def load_deserialize_data(self):
 
         self.train_X = np.load(self.train_X_preprocessed_data)
         self.train_Y = np.load(self.train_Y_preprocessed_data)
+        self.val_X = np.load(self.val_X_preprocessed_data)
+        self.val_Y = np.load(self.val_Y_preprocessed_data)
         self.test_X = np.load(self.test_X_preprocessed_data)
         self.test_Y = np.load(self.test_Y_preprocessed_data)
 

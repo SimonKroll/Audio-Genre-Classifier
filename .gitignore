@@ -1,5 +1,6 @@
 TRAIN
 TEST
+VAL
 Test_Samples
 # Byte-compiled / optimized / DLL files
 __pycache__/
