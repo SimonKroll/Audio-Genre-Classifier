@@ -10,7 +10,8 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import Dense
-from keras.optimizers import *
+from keras.optimizers import Adam
+from keras import initializers
 from keras import backend as K
 from keras.models import model_from_json
 from GenreFeatureData import (
@@ -45,23 +46,25 @@ input_shape = (genre_features.train_X.shape[1], genre_features.train_X.shape[2])
 print("Build LSTM RNN model ...")
 model = Sequential()
 
-# added another 64-unit lstm module and increased dropout on first module @ethanB
-lstm0 = LSTM(units=128, dropout=0.1, recurrent_dropout=0.40, return_sequences=True, input_shape=input_shape)
+initializer = initializers.RandomNormal(mean=0., stddev=1.)
+
+lstm0 = LSTM(kernel_initializer=initializer, units=64, recurrent_dropout=0.20, return_sequences=True, input_shape=input_shape)
 model.add(lstm0)
-lstm1 = LSTM(units=64,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True)
+lstm1 = LSTM(kernel_initializer=initializer, units=24, recurrent_dropout=0.20, return_sequences=True)
 model.add(lstm1)
-lstm2 = LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=False)
+lstm2 = LSTM(kernel_initializer=initializer, units=16, recurrent_dropout=0.20, return_sequences=False)
 model.add(lstm2)
-model.add(Dense(units=genre_features.train_Y.shape[1], activation="softmax"))
+dense0 = Dense(kernel_initializer=initializer, units=genre_features.train_Y.shape[1], activation="softmax")
+model.add(dense0)
 
 print("Compiling ...")
 
-opt = Adam()
+opt = Adam(learning_rate=0.01, epsilon=1e-8, weight_decay=0.001)
 model.compile(loss="MSE", optimizer=opt, metrics=["accuracy"])
 model.summary()
 
 print("Training ...")
-batch_size = 40  # num of training examples per minibatch
+batch_size = 30  # num of training examples per minibatch
 num_epochs = 100
 model.fit(
     genre_features.train_X,
